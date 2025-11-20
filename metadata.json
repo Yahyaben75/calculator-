@@ -1,0 +1,5 @@
+{
+  "name": "Calculator Games",
+  "description": "A functional calculator with hidden secrets. Input '1+1' for Snake, '2+2' for Sky Gift, '3+3' for Danger Zone, '4+4' for a Racing game, '5+5' for a platformer, '6+6' for a top-down shooter, '7+7' for Balloon Keep Up, and '8+8' for Dot Runner.",
+  "requestFramePermissions": []
+}
