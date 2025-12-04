@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useInterval } from '../hooks/useInterval';
 import Controls from './Controls';
 
@@ -76,6 +77,7 @@ const createInitialState = () => {
 const DotRunnerGame: React.FC<DotRunnerGameProps> = ({ onExit }) => {
     const [gameState, setGameState] = useState(createInitialState());
     const { player, shadow, collectible, score, isGameOver, gameSpeed, glitch, proximityAlert, shadowPowerUpTimer } = gameState;
+    const coinsAwardedRef = useRef(false);
 
     const generateCollectible = useCallback((currentPlayer: Point, currentShadow: Point): Collectible => {
         let newCollectible: Collectible;
@@ -94,10 +96,27 @@ const DotRunnerGame: React.FC<DotRunnerGameProps> = ({ onExit }) => {
 
     const restartGame = useCallback(() => {
         const initialState = createInitialState();
+        coinsAwardedRef.current = false;
         // Ensure collectible is not on top of player at start
         initialState.collectible = generateCollectible(initialState.player, initialState.shadow);
         setGameState(initialState);
     }, [generateCollectible]);
+
+    // Award Coins AND Save High Score on Game Over
+    useEffect(() => {
+        if (isGameOver && !coinsAwardedRef.current) {
+            coinsAwardedRef.current = true;
+            // Coins
+            const currentCoins = parseInt(localStorage.getItem('platformer_totalCoins') || '0', 10);
+            localStorage.setItem('platformer_totalCoins', (currentCoins + score).toString());
+
+            // High Score
+            const currentBest = parseInt(localStorage.getItem('dotrunner_best') || '0', 10);
+            if (score > currentBest) {
+                localStorage.setItem('dotrunner_best', score.toString());
+            }
+        }
+    }, [isGameOver, score]);
 
     const handleKeyPress = useCallback((key: string) => {
         if (isGameOver) return;
@@ -226,6 +245,7 @@ const DotRunnerGame: React.FC<DotRunnerGameProps> = ({ onExit }) => {
                     <div className="absolute inset-0 bg-black bg-opacity-80 flex flex-col justify-center items-center z-10">
                         <h2 className="text-2xl sm:text-3xl font-bold text-red-500 glitch-text">SYSTEM GLITCH...</h2>
                         <p className="text-lg mt-2">Final Score: {score}</p>
+                        <p className="text-lg text-yellow-400 mt-1">+ {score} Coins Earned!</p>
                         <button
                             onClick={restartGame}
                             className="mt-6 bg-lime-500 hover:bg-lime-400 text-gray-900 font-bold py-2 px-6 rounded-lg transition-colors"

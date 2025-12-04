@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import Calculator from './components/Calculator';
 import SnakeGame from './components/SnakeGame';
@@ -8,8 +9,10 @@ import PlatformerGame from './components/PlatformerGame';
 import ShooterGame from './components/ShooterGame';
 import KeepUpGame from './components/KeepUpGame';
 import DotRunnerGame from './components/DotRunnerGame';
+import Marketplace from './components/Marketplace';
+import SocialHub from './components/SocialHub';
 
-type Game = 'none' | 'snake' | 'sky' | 'danger' | 'racing' | 'platformer' | 'shooter' | 'keepup' | 'dotrunner';
+type Game = 'none' | 'snake' | 'sky' | 'danger' | 'racing' | 'platformer' | 'shooter' | 'keepup' | 'dotrunner' | 'marketplace' | 'social';
 
 const App: React.FC = () => {
   const [activeGame, setActiveGame] = useState<Game>('none');
@@ -67,6 +70,10 @@ const App: React.FC = () => {
         return <KeepUpGame onExit={handleExitGame} />;
       case 'dotrunner':
         return <DotRunnerGame onExit={handleExitGame} />;
+      case 'marketplace':
+        return <Marketplace onExit={handleExitGame} />;
+      case 'social':
+        return <SocialHub onExit={handleExitGame} />;
       default:
         return null;
     }
@@ -82,6 +89,8 @@ const App: React.FC = () => {
       case 'shooter': return 'Neon Shield';
       case 'keepup': return 'Balloon Keep Up';
       case 'dotrunner': return 'Dot Runner';
+      case 'marketplace': return 'Global Marketplace';
+      case 'social': return 'Nexus Link';
       default: return 'Calculator';
     }
   };
@@ -97,41 +106,51 @@ const App: React.FC = () => {
       case 'shooter': return isMobile ? 'Touch to Aim & Shoot' : 'Mouse to Aim, Click to Shoot';
       case 'keepup': return 'Move the paddle to keep the balloon up!';
       case 'dotrunner': return isMobile ? 'Use On-Screen Controls' : 'Use Arrow Keys to Move, Avoid the Shadow!';
+      case 'marketplace': return 'Buy and Sell items with your Global Score!';
+      case 'social': return 'Connect with other players.';
       default: return 'A normal calculator... or is it?';
     }
   };
 
   return (
-    <div className="h-screen w-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-gray-900 to-slate-800 font-mono overflow-hidden touch-none">
-      <div className="w-full max-w-md mx-auto mb-8" style={{ perspective: '1000px' }}>
-        <h1 className={`text-3xl font-bold text-center text-cyan-400 mb-2 ${activeGame === 'none' && !isGlitchGloballyFixed ? 'glitch-text' : ''}`}>
-          {getTitle()}
-        </h1>
-        <p className="text-center text-gray-400 mb-6 px-4">
-          {getSubtitle()}
-        </p>
+    <div className="fixed inset-0 w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-gray-900 to-slate-800 font-mono overflow-hidden">
+      <div className="w-full max-w-md mx-auto flex flex-col h-full" style={{ perspective: '1000px' }}>
         
-        {/* Responsive Flip Card Container using CSS Grid */}
-        <div className={`transition-transform duration-700 [transform-style:preserve-3d] grid place-items-center w-full ${activeGame !== 'none' ? '[transform:rotateY(180deg)]' : ''}`}>
-            
-            {/* Front Face (Calculator) */}
-            <div className="[grid-area:1/1] w-full [backface-visibility:hidden]">
-              <Calculator onActivateGame={handleActivateGame} />
-            </div>
-            
-            {/* Back Face (Games) */}
-            <div className="[grid-area:1/1] w-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
-              <div className="relative w-full">
-                {activeGame !== 'none' && renderGame()}
-              </div>
-            </div>
-
+        {/* Header Section - Fixed height/flex-shrink */}
+        <div className="flex-shrink-0 mt-2 mb-2 sm:mb-4 text-center">
+            <h1 className={`text-2xl sm:text-3xl font-bold text-cyan-400 mb-1 ${activeGame === 'none' && !isGlitchGloballyFixed ? 'glitch-text' : ''}`}>
+              {getTitle()}
+            </h1>
+            <p className="text-xs sm:text-base text-gray-400 px-4 whitespace-nowrap overflow-hidden text-ellipsis">
+              {getSubtitle()}
+            </p>
         </div>
-      </div>
+        
+        {/* Content Section - Grows to fill available space */}
+        <div className="flex-grow flex items-center justify-center min-h-0 relative">
+            {/* Responsive Flip Card Container using CSS Grid */}
+            <div className={`transition-transform duration-700 [transform-style:preserve-3d] grid place-items-center w-full ${activeGame !== 'none' ? '[transform:rotateY(180deg)]' : ''}`}>
+                
+                {/* Front Face (Calculator) */}
+                <div className="[grid-area:1/1] w-full [backface-visibility:hidden]">
+                  <Calculator onActivateGame={handleActivateGame} />
+                </div>
+                
+                {/* Back Face (Games) */}
+                <div className="[grid-area:1/1] w-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                  <div className="relative w-full">
+                    {activeGame !== 'none' && renderGame()}
+                  </div>
+                </div>
+
+            </div>
+        </div>
       
-      <footer className="text-center text-gray-500 mt-auto pb-4 text-sm w-full absolute bottom-0 pointer-events-none">
-        THIS APP BY YAHYA BENMOUSSA🇲🇦
-      </footer>
+        {/* Footer Section - Fixed at bottom */}
+        <footer className="flex-shrink-0 text-center text-gray-500 mb-2 sm:mt-4 text-xs sm:text-sm w-full pointer-events-none">
+          THIS APP BY YAHYA BENMOUSSA🇲🇦
+        </footer>
+      </div>
     </div>
   );
 };

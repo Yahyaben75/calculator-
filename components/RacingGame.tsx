@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useInterval } from '../hooks/useInterval';
 import Controls from './Controls';
@@ -127,7 +128,6 @@ const PlayerCar = ({ score, style, isInvincible }: { score: number; style: React
 };
 
 // Opponent Car component
-// FIX: Explicitly type as a React Function Component (`React.FC`) to ensure TypeScript correctly handles React's special `key` prop when this component is rendered in a list.
 const OpponentCar: React.FC<{ car: Car }> = ({ car }) => {
     return (
         <div
@@ -160,13 +160,11 @@ const TankComponent = ({ tank }: { tank: Tank }) => (
 );
 
 // Projectile component
-// FIX: Explicitly type as a React Function Component (`React.FC`) to ensure TypeScript correctly handles React's special `key` prop when this component is rendered in a list.
 const ProjectileComponent: React.FC<{ projectile: Projectile }> = ({ projectile }) => (
     <div className="absolute bg-yellow-400 rounded-full" style={{ left: projectile.x, top: projectile.y, width: projectile.width, height: projectile.height, boxShadow: '0 0 8px #facc15' }} />
 );
 
 // Explosion component (CSS animation)
-// FIX: Explicitly type as a React Function Component (`React.FC`) to ensure TypeScript correctly handles React's special `key` prop when this component is rendered in a list.
 const ExplosionComponent: React.FC<{ explosion: Explosion }> = ({ explosion }) => (
     <div className="absolute" style={{ left: explosion.x, top: explosion.y, transform: 'translate(-50%, -50%)' }}>
         <div className="absolute rounded-full bg-orange-500 animate-ping" style={{ width: explosion.size, height: explosion.size }} />
@@ -185,6 +183,7 @@ const RacingGame: React.FC<RacingGameProps> = ({ onExit }) => {
     const laneChangeBuffer = useRef<'left' | 'right' | null>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
+    const coinsAwardedRef = useRef(false);
     
     useEffect(() => {
         const viewport = viewportRef.current;
@@ -206,8 +205,26 @@ const RacingGame: React.FC<RacingGameProps> = ({ onExit }) => {
 
     const restartGame = useCallback(() => {
         laneChangeBuffer.current = null;
+        coinsAwardedRef.current = false;
         setGameState(createInitialState());
     }, []);
+
+    // Award Coins AND Save High Score on Game Over
+    useEffect(() => {
+        if (gameState.isGameOver && !coinsAwardedRef.current) {
+            coinsAwardedRef.current = true;
+            // Coins
+            const currentCoins = parseInt(localStorage.getItem('platformer_totalCoins') || '0', 10);
+            const earned = Math.floor(gameState.score / 10); // 1 coin per 10 points
+            localStorage.setItem('platformer_totalCoins', (currentCoins + earned).toString());
+
+            // High Score
+            const currentBest = parseInt(localStorage.getItem('racing_best') || '0', 10);
+            if (gameState.score > currentBest) {
+                localStorage.setItem('racing_best', gameState.score.toString());
+            }
+        }
+    }, [gameState.isGameOver, gameState.score]);
 
     const handleKeyPress = useCallback((key: string) => {
         if (gameState.isGameOver) return;
@@ -420,6 +437,7 @@ const RacingGame: React.FC<RacingGameProps> = ({ onExit }) => {
                   <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col justify-center items-center z-20">
                     <h2 className="text-4xl font-bold text-red-500">CRASHED!</h2>
                     <p className="text-xl mt-2">Your Score: {gameState.score}</p>
+                    <p className="text-lg text-yellow-400 mt-1">+ {Math.floor(gameState.score / 10)} Coins Earned!</p>
                     <button
                       onClick={restartGame}
                       className="mt-6 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-2 px-6 rounded-lg transition-colors"

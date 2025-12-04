@@ -11,7 +11,8 @@
   "imports": {
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0"
   }
 }
 </script>
@@ -19,12 +20,11 @@
       html, body {
         width: 100%;
         height: 100%;
-        position: fixed; /* Locks the viewport to prevent scrolling */
         margin: 0;
         padding: 0;
-        overflow: hidden; /* Hides any overflow */
-        overscroll-behavior: none; /* Prevents bounce effects */
-        touch-action: none; /* Disables browser handling of gestures like swipe to scroll */
+        position: fixed; /* Locks the viewport to the screen size */
+        overflow: hidden; /* Prevents scrollbars */
+        touch-action: none; /* Disables browser scrolling/zooming gestures */
         background-color: #111827; 
       }
       @keyframes fade-in {

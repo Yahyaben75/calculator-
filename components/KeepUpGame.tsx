@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useInterval } from '../hooks/useInterval';
 
@@ -131,6 +132,7 @@ const KeepUpGame: React.FC<KeepUpGameProps> = ({ onExit }) => {
   const [gameState, setGameState] = useState(createInitialState());
   const viewportRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const coinsAwardedRef = useRef(false);
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -151,8 +153,25 @@ const KeepUpGame: React.FC<KeepUpGameProps> = ({ onExit }) => {
   }, []);
 
   const restartGame = useCallback(() => {
+    coinsAwardedRef.current = false;
     setGameState(createInitialState());
   }, []);
+
+  // Award Coins AND Save High Score on Game Over
+  useEffect(() => {
+    if (gameState.isGameOver && !coinsAwardedRef.current) {
+        coinsAwardedRef.current = true;
+        // Coins
+        const currentCoins = parseInt(localStorage.getItem('platformer_totalCoins') || '0', 10);
+        localStorage.setItem('platformer_totalCoins', (currentCoins + gameState.score).toString());
+
+        // High Score
+        const currentBest = parseInt(localStorage.getItem('keepup_best') || '0', 10);
+        if (gameState.score > currentBest) {
+            localStorage.setItem('keepup_best', gameState.score.toString());
+        }
+    }
+  }, [gameState.isGameOver, gameState.score]);
 
   const handlePointerMove = useCallback((clientX: number) => {
     if (gameState.isGameOver || !viewportRef.current) return;
@@ -358,6 +377,7 @@ const KeepUpGame: React.FC<KeepUpGameProps> = ({ onExit }) => {
             <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col justify-center items-center z-20">
               <h2 className="text-4xl font-bold text-red-500">Game Over</h2>
               <p className="text-xl mt-2">Your Score: {score}</p>
+              <p className="text-lg text-yellow-400 mt-1">+ {score} Coins Earned!</p>
               <button
                 onClick={restartGame}
                 className="mt-6 bg-orange-500 hover:bg-orange-400 text-gray-900 font-bold py-2 px-6 rounded-lg transition-colors"

@@ -44,6 +44,11 @@ const Calculator: React.FC<CalculatorProps> = ({ onActivateGame }) => {
   };
   
   const handleEquals = () => {
+    // Secret Codes
+    if (display === '0') {
+        onActivateGame('social');
+        return;
+    }
     if (display === '1+1') {
       onActivateGame('snake');
       return;
@@ -74,6 +79,10 @@ const Calculator: React.FC<CalculatorProps> = ({ onActivateGame }) => {
     }
     if (display === '8+8') {
       onActivateGame('dotrunner');
+      return;
+    }
+    if (display === '0+0') {
+      onActivateGame('marketplace');
       return;
     }
 

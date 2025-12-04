@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useInterval } from '../hooks/useInterval';
 import Controls from './Controls';
@@ -29,6 +30,7 @@ const DangerGame: React.FC<DangerGameProps> = ({ onExit }) => {
   const [keys, setKeys] = useState<Record<string, boolean>>({});
   const viewportRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const coinsAwardedRef = useRef(false);
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -52,12 +54,32 @@ const DangerGame: React.FC<DangerGameProps> = ({ onExit }) => {
   const handleKeyRelease = useCallback((key: string) => setKeys(prev => ({ ...prev, [key]: false })), []);
 
   const restartGame = useCallback(() => {
+    coinsAwardedRef.current = false;
     setPlayer({ x: GAME_WIDTH / 2 - PLAYER_SIZE / 2, y: GAME_HEIGHT / 2 - PLAYER_SIZE / 2 });
     setObstacles([]);
     setTime(0);
     setIsGameOver(false);
     setKeys({});
   }, []);
+
+  const scoreValue = parseFloat((time * 20 / 1000).toFixed(2));
+
+  // Award Coins AND Save High Score on Game Over
+  useEffect(() => {
+    if (isGameOver && !coinsAwardedRef.current) {
+        coinsAwardedRef.current = true;
+        // Coins
+        const currentCoins = parseInt(localStorage.getItem('platformer_totalCoins') || '0', 10);
+        const earned = Math.floor(scoreValue * 2); // 2 coins per second survived
+        localStorage.setItem('platformer_totalCoins', (currentCoins + earned).toString());
+
+        // High Score
+        const currentBest = parseFloat(localStorage.getItem('danger_best') || '0');
+        if (scoreValue > currentBest) {
+            localStorage.setItem('danger_best', scoreValue.toString());
+        }
+    }
+  }, [isGameOver, scoreValue]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => !e.repeat && handleKeyPress(e.key);
@@ -145,12 +167,11 @@ const DangerGame: React.FC<DangerGameProps> = ({ onExit }) => {
     setObstacles(o => [...o, { id: Date.now(), x, y, vx, vy }]);
 
   }, !isGameOver ? OBSTACLE_SPAWN_RATE : null);
-  const score = (time * 20 / 1000).toFixed(2);
 
   return (
     <div className="bg-slate-800 p-4 rounded-2xl shadow-2xl shadow-red-500/10 border border-slate-700">
       <div className="flex justify-between items-center mb-2 px-2 text-red-300">
-        <span className="font-bold">Time: {score}s</span>
+        <span className="font-bold">Time: {scoreValue}s</span>
         <button onClick={onExit} className="text-sm bg-rose-600 hover:bg-rose-500 px-3 py-1 rounded-md transition-colors">Exit</button>
       </div>
        <div
@@ -173,7 +194,8 @@ const DangerGame: React.FC<DangerGameProps> = ({ onExit }) => {
           {isGameOver && (
             <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col justify-center items-center z-10">
               <h2 className="text-4xl font-bold text-red-500">GAME OVER</h2>
-              <p className="text-xl mt-2">You survived for {score} seconds.</p>
+              <p className="text-xl mt-2">You survived for {scoreValue} seconds.</p>
+              <p className="text-lg text-yellow-400 mt-1">+ {Math.floor(scoreValue * 2)} Coins Earned!</p>
               <button
                 onClick={restartGame}
                 className="mt-6 bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-6 rounded-lg transition-colors"
